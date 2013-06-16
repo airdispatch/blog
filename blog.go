@@ -3,13 +3,13 @@ package blog;
 import (
 	"crypto/ecdsa"
 	"html/template"
-	"io"
 	"errors"
 	"unicode"
 	clientFramework "airdispat.ch/client/framework"
 	"airdispat.ch/airdispatch"
 	"code.google.com/p/goprotobuf/proto"
 	"github.com/russross/blackfriday"
+	"github.com/hoisie/web"
 )
 
 type Post struct {
@@ -88,9 +88,9 @@ func (b *Blog) CreatePost(toFormat Post) Post {
 	return thePost
 }
 
-type WebGoRouter func(ctx io.Writer, val string)
+type WebGoRouter func(ctx *web.Context, val string)
 func (b *Blog) WebGoBlog(template *template.Template) WebGoRouter {
-	return func(ctx io.Writer, val string) {
+	return func(ctx *web.Context, val string) {
 		var err error
 		context := make(map[string]interface{})
 		if val == "/" || val == "" {
