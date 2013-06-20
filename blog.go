@@ -4,7 +4,6 @@ import (
 	"crypto/ecdsa"
 	"html/template"
 	"errors"
-	"unicode"
 	clientFramework "airdispat.ch/client/framework"
 	"airdispat.ch/airdispatch"
 	"code.google.com/p/goprotobuf/proto"
@@ -81,7 +80,7 @@ func (b *Blog) CreatePost(toFormat Post) Post {
 	thePost := Post{
 		Title: toFormat.Title,
 		Author: toFormat.Author, 
-		URL: Slug(toFormat.Title),
+		URL: web.Slug(toFormat.Title, "-"),
 		Date: toFormat.Date,
 		Content: theContent}
 	b.allPosts[thePost.URL] = thePost
@@ -104,23 +103,4 @@ func (b *Blog) WebGoBlog(template *template.Template) WebGoRouter {
 		}
 		template.Execute(ctx, context)
 	}
-}
-
-var lat = []*unicode.RangeTable{unicode.Letter, unicode.Number}
-func Slug(s string) string {
-	buf := make([]rune, 0, len(s))
-	dash := false
-	for _, r := range s {
-		switch {
-		case unicode.IsOneOf(lat, r):
-			buf = append(buf, unicode.ToLower(r))
-			dash = true
-		case dash:
-			if dash {
-				buf = append(buf, '-')
-				dash = false
-			}
-		}
-	}
-	return string(buf)
 }
