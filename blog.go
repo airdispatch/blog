@@ -69,6 +69,10 @@ func (b *Blog) GetPosts() ([]Post, error) {
 			}
 		}
 
+		if toFormat.Title == "" {
+			continue
+		}
+
 		formattedPosts = append(formattedPosts, b.CreatePost(toFormat))
 	}
 
