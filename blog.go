@@ -1,11 +1,11 @@
 package blog;
 
 import (
-	"crypto/ecdsa"
 	"html/template"
 	"errors"
 	clientFramework "airdispat.ch/client/framework"
 	"airdispat.ch/airdispatch"
+	"airdispat.ch/common"
 	"code.google.com/p/goprotobuf/proto"
 	"github.com/russross/blackfriday"
 	"github.com/hoisie/web"
@@ -23,7 +23,7 @@ type Post struct {
 type Blog struct {
 	Address string
 	Trackers []string
-	Key *ecdsa.PrivateKey
+	Key *common.ADKey
 
 	allPosts map[string]Post
 }
