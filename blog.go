@@ -9,6 +9,7 @@ import (
 	"code.google.com/p/goprotobuf/proto"
 	"github.com/russross/blackfriday"
 	"github.com/hoisie/web"
+	"time"
 )
 
 type Post struct {
@@ -58,16 +59,16 @@ func (b *Blog) GetPosts() ([]Post, error) {
 
 		toFormat := Post{}
 		for _, dataObject := range(dataTypes.Payload) {
-			if *dataObject.TypeName == "blog/content" {
+			if *dataObject.TypeName == "airdispat.ch/blog/content" {
 				toFormat.plainText = string(dataObject.Payload)
-			} else if *dataObject.TypeName == "blog/author" {
+			} else if *dataObject.TypeName == "airdispat.ch/blog/author" {
 				toFormat.Author = string(dataObject.Payload)
-			} else if *dataObject.TypeName == "blog/date" {
-				toFormat.Date = string(dataObject.Payload)
-			} else if *dataObject.TypeName == "blog/title" {
+			} else if *dataObject.TypeName == "airdispat.ch/blog/title" {
 				toFormat.Title = string(dataObject.Payload)
 			}
 		}
+
+		toFormat.Date = time.Unix(dataTypes.Timestamp, 0).Format("Jan 2, 2006 at 3:04pm")
 
 		if toFormat.Title == "" {
 			continue
