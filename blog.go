@@ -99,7 +99,7 @@ func (b *Blog) CreatePost(toFormat Post) Post {
 }
 
 type WebGoRouter func(ctx *web.Context, val string)
-func (b *Blog) WebGoBlog(template *template.Template) WebGoRouter {
+func (b *Blog) WebGoBlog(tmp *template.Template, templateName string) WebGoRouter {
 	return func(ctx *web.Context, val string) {
 		var err error
 		context := make(map[string]interface{})
@@ -112,6 +112,12 @@ func (b *Blog) WebGoBlog(template *template.Template) WebGoRouter {
 			ctx.Write([]byte(err.Error()))
 			return
 		}
-		template.Execute(ctx, context)
+
+		if templateName != "" {
+			tmp.ExecuteTemplate(ctx, templateName, context)
+			return
+		}
+
+		tmp.Execute(ctx, context)
 	}
 }
