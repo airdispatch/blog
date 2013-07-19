@@ -67,14 +67,14 @@ func (b *Blog) GetPosts() ([]Post, error) {
 				toFormat.Author = string(dataObject.Payload)
 			} else if *dataObject.TypeName == "airdispat.ch/blog/title" {
 				toFormat.Title = string(dataObject.Payload)
-			} else if *data.Object.TypeName == "airdispat.ch/blog/id" {
-				if (dataObject.Payload) != b.BlogId {
+			} else if *dataObject.TypeName == "airdispat.ch/blog/id" {
+				if string(dataObject.Payload) != b.BlogId {
 					continue
 				}
 			}
 		}
 
-		toFormat.Date = time.Unix(dataTypes.Timestamp, 0).Format("Jan 2, 2006 at 3:04pm")
+		toFormat.Date = time.Unix(int64(*value.Timestamp), 0).Format("Jan 2, 2006 at 3:04pm")
 
 		if toFormat.Title == "" {
 			continue
