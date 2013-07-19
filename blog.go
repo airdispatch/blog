@@ -57,6 +57,8 @@ func (b *Blog) GetPosts() ([]Post, error) {
 		byteTypes := value.Data
 		dataTypes := &airdispatch.MailData{}
 
+		skipped := false
+
 		proto.Unmarshal(byteTypes, dataTypes)
 
 		toFormat := Post{}
@@ -69,14 +71,15 @@ func (b *Blog) GetPosts() ([]Post, error) {
 				toFormat.Title = string(dataObject.Payload)
 			} else if *dataObject.TypeName == "airdispat.ch/blog/id" {
 				if string(dataObject.Payload) != b.BlogId {
-					continue
+					skipped = true
+					break
 				}
 			}
 		}
 
 		toFormat.Date = time.Unix(int64(*value.Timestamp), 0).Format("Jan 2, 2006 at 3:04pm")
 
-		if toFormat.Title == "" {
+		if toFormat.Title == "" || skipped {
 			continue
 		}
 
