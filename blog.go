@@ -26,6 +26,8 @@ type Blog struct {
 	Trackers []string
 	Key *common.ADKey
 
+	BlogId string
+
 	allPosts map[string]Post
 }
 
@@ -65,6 +67,10 @@ func (b *Blog) GetPosts() ([]Post, error) {
 				toFormat.Author = string(dataObject.Payload)
 			} else if *dataObject.TypeName == "airdispat.ch/blog/title" {
 				toFormat.Title = string(dataObject.Payload)
+			} else if *data.Object.TypeName == "airdispat.ch/blog/id" {
+				if (dataObject.Payload) != b.BlogId {
+					continue
+				}
 			}
 		}
 
