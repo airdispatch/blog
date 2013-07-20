@@ -77,7 +77,10 @@ func (b *Blog) GetPosts() ([]Post, error) {
 			}
 		}
 
-		toFormat.Date = time.Unix(int64(*value.Timestamp), 0).Format("Jan 2, 2006 at 3:04pm")
+		dateObject := time.Unix(int64(*value.Timestamp), 0)
+		localTZ, _ := time.LoadLocation("Local")
+
+		toFormat.Date = dateObject.In(localTZ).Format("Jan 2, 2006 at 3:04pm")
 
 		if toFormat.Title == "" || skipped {
 			continue
