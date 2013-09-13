@@ -1,30 +1,28 @@
-package blog;
+package blog
 
 import (
-	"html/template"
-	"errors"
 	clientFramework "airdispat.ch/client/framework"
-	"airdispat.ch/airdispatch"
 	"airdispat.ch/common"
-	"code.google.com/p/goprotobuf/proto"
-	"github.com/russross/blackfriday"
+	"errors"
 	"github.com/hoisie/web"
+	"github.com/russross/blackfriday"
+	"html/template"
 	"time"
 )
 
 type Post struct {
-	Title string
-	Author string
-	URL string
-	Date string
-	Content template.HTML
+	Title     string
+	Author    string
+	URL       string
+	Date      string
+	Content   template.HTML
 	plainText string
 }
 
 type Blog struct {
-	Address string
-	Trackers []string
-	Key *common.ADKey
+	Address  *common.ADAddress
+	Trackers *common.ADTrackerList
+	Key      *common.ADKey
 
 	BlogId string
 
@@ -53,38 +51,30 @@ func (b *Blog) GetPosts() ([]Post, error) {
 
 	formattedPosts := []Post{}
 
-	for _, value := range(allPosts) {
-		byteTypes := value.Data
-		dataTypes := &airdispatch.MailData{}
-
-		skipped := false
-
-		proto.Unmarshal(byteTypes, dataTypes)
-
-		toFormat := Post{}
-		for _, dataObject := range(dataTypes.Payload) {
-			if *dataObject.TypeName == "airdispat.ch/blog/content" {
-				toFormat.plainText = string(dataObject.Payload)
-			} else if *dataObject.TypeName == "airdispat.ch/blog/author" {
-				toFormat.Author = string(dataObject.Payload)
-			} else if *dataObject.TypeName == "airdispat.ch/blog/title" {
-				toFormat.Title = string(dataObject.Payload)
-			} else if *dataObject.TypeName == "airdispat.ch/blog/id" {
-				if string(dataObject.Payload) != b.BlogId {
-					skipped = true
-					break
-				}
-			}
+	for _, value := range allPosts {
+		if !value.HasDataType("airdispat.ch/blog/title") {
+			continue
 		}
 
-		dateObject := time.Unix(int64(*value.Timestamp), 0)
+		content, _ := value.GetADComponentForType("airdispat.ch/blog/content")
+		author, _ := value.GetADComponentForType("airdispat.ch/blog/author")
+		title, _ := value.GetADComponentForType("airdispat.ch/blog/title")
+		id, _ := value.GetADComponentForType("airdispat.ch/blog/id")
+
+		if id.StringValue() != b.BlogId {
+			continue
+		}
+
+		toFormat := Post{
+			Title:     title.StringValue(),
+			Author:    author.StringValue(),
+			plainText: content.StringValue(),
+		}
+
+		dateObject := time.Unix(int64(value.Timestamp), 0)
 		localTZ, _ := time.LoadLocation("Local")
 
 		toFormat.Date = dateObject.In(localTZ).Format("Jan 2, 2006 at 3:04pm")
-
-		if toFormat.Title == "" || skipped {
-			continue
-		}
 
 		formattedPosts = append(formattedPosts, b.CreatePost(toFormat))
 	}
@@ -95,16 +85,17 @@ func (b *Blog) GetPosts() ([]Post, error) {
 func (b *Blog) CreatePost(toFormat Post) Post {
 	theContent := template.HTML(string(blackfriday.MarkdownCommon([]byte(toFormat.plainText))))
 	thePost := Post{
-		Title: toFormat.Title,
-		Author: toFormat.Author, 
-		URL: web.Slug(toFormat.Title, "-"),
-		Date: toFormat.Date,
+		Title:   toFormat.Title,
+		Author:  toFormat.Author,
+		URL:     web.Slug(toFormat.Title, "-"),
+		Date:    toFormat.Date,
 		Content: theContent}
 	b.allPosts[thePost.URL] = thePost
 	return thePost
 }
 
 type WebGoRouter func(ctx *web.Context, val string)
+
 func (b *Blog) WebGoBlog(tmp *template.Template, templateName string) WebGoRouter {
 	return func(ctx *web.Context, val string) {
 		var err error
